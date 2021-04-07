@@ -1,0 +1,19 @@
+* {
+  font-size: 18px;
+}
+
+.sidebar-nav {
+  margin-top: 20px;
+  padding: 0;
+  list-style: none;
+  border-right: 1px solid black;
+  height: 910px;
+}
+
+a {
+  color: #34a8eb;
+}
+
+.col-sm-10 {
+  margin-top: 20px;
+}
