@@ -15,8 +15,7 @@ var app = express();
 // mongodb
 
 var mongoose = require("mongoose");
-//var mongoDB = "mongodb+srv://cilginsedat:fenerbahce4@cluster0.jxngt.mongodb.net/local_library?retryWrites=true&w=majority"
-let dev_db_url = "mongodb+srv://cilginsedat:fenerbahce4@cluster0.jxngt.mongodb.net/local_library?retryWrites=true&w=majority";
+let dev_db_url = process.env.DEVDB_URL;
 let mongoDB = process.env.MONGODB_URI || dev_db_url;
 mongoose.connect(mongoDB, {useNewUrlParser: true, useUnifiedTopology: true});
 var db = mongoose.connection;
