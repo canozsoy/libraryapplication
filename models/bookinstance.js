@@ -1,34 +1,44 @@
-var mongoose = require('mongoose');
-const  { DateTime }  = require("luxon");
+const mongoose = require('mongoose');
+const bookInstanceVirtual = require('./virtuals/book_instance_virtual');
 
-var Schema = mongoose.Schema;
+const { Schema } = mongoose;
 
-var BookInstanceSchema = new Schema(
+const BookInstanceSchema = new Schema(
     {
-        book: { type: Schema.Types.ObjectId, ref: 'Book', required: true }, //reference to the associated book
-        imprint: {type: String, required: true},
-        status: {type: String, required: true, enum: ['Available', 'Maintenance', 'Loaned', 'Reserved'], default: 'Maintenance'},
-        due_back: {type: Date, default: Date.now}
-    }
+        book: {
+            type: Schema.Types.ObjectId,
+            ref: 'Book',
+            required: true,
+        },
+        imprint: {
+            type: String,
+            required: true,
+        },
+        status: {
+            type: String,
+            required: true,
+            enum: ['Available', 'Maintenance', 'Loaned', 'Reserved'],
+            default: 'Maintenance',
+        },
+        due_back: {
+            type: Date,
+            default: Date.now,
+        },
+    },
 );
 
-// Virtual for bookinstance's URL
+// Virtual for book instance
 BookInstanceSchema
     .virtual('url')
-    .get(function () {
-        return '/catalog/bookinstance/' + this._id;
-    });
+    .get(bookInstanceVirtual.getUrl);
 
 BookInstanceSchema
-    .virtual('due_back_formatted')
-    .get(function () {
-        return DateTime.fromJSDate(this.due_back).toLocaleString(DateTime.DATE_MED);
-    });
-BookInstanceSchema
-    .virtual("due_back_formatted_mm_dd_yyyy")
-    .get(function () {
-        return DateTime.fromJSDate(this.due_back).toISODate();
-    });
+    .virtual('dueBackFormatted')
+    .get(bookInstanceVirtual.getDueBackFormatted);
 
-//Export model
+BookInstanceSchema
+    .virtual('dueBackRaw')
+    .get(bookInstanceVirtual.getDueBackRaw);
+
+// Export model
 module.exports = mongoose.model('BookInstance', BookInstanceSchema);

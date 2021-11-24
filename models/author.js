@@ -1,72 +1,51 @@
-var mongoose = require('mongoose');
-let {DateTime} = require("luxon");
+const mongoose = require('mongoose');
+const authorVirtual = require('./virtuals/author_virtual');
 
-var Schema = mongoose.Schema;
+const { Schema } = mongoose;
 
-var AuthorSchema = new Schema(
+const AuthorSchema = new Schema(
     {
-        first_name: {type: String, required: true, maxlength: 100},
-        family_name: {type: String, required: true, maxlength: 100},
-        date_of_birth: {type: Date},
-        date_of_death: {type: Date},
-    }
+        first_name: {
+            type: String,
+            required: true,
+            maxlength: 100,
+        },
+        family_name: {
+            type: String,
+            required: true,
+            maxlength: 100,
+        },
+        date_of_birth: {
+            type: Date,
+        },
+        date_of_death: {
+            type: Date,
+        },
+    },
 );
 
-// Virtual for author's full name
+// Virtual for author
+
 AuthorSchema
     .virtual('name')
-    .get(function () {
-        return this.family_name + ', ' + this.first_name;
-    });
-
-// Virtual for author's lifespan
+    .get(authorVirtual.getName);
 AuthorSchema
     .virtual('lifespan')
-    .get(function () {
-        if ((this.date_of_birth && this.date_of_death))
-        return (this.date_of_death.getFullYear() - this.date_of_birth.getFullYear()).toString();
-    });
-
-// Virtual for author's URL
+    .get(authorVirtual.getLifespan);
 AuthorSchema
     .virtual('url')
-    .get(function () {
-        return '/catalog/author/' + this._id;
-    });
-
+    .get(authorVirtual.getUrl);
 AuthorSchema
-    .virtual("date_of_birth_formatted")
-    .get(function () {
-        if (this.date_of_birth) {
-            return DateTime.fromJSDate(this.date_of_birth).toLocaleString(DateTime.DATE_MED);
-        } else return "";
-
-    });
-
+    .virtual('dateOfBirthFormatted')
+    .get(authorVirtual.getDateOfBirthFormatted);
 AuthorSchema
-    .virtual("date_of_death_formatted")
-    .get(function () {
-        if (this.date_of_death) {
-            return DateTime.fromJSDate(this.date_of_death).toLocaleString(DateTime.DATE_MED);
-        } else {
-            return "";
-        }
-    });
+    .virtual('dateOfDeathFormatted')
+    .get(authorVirtual.getDateOfDeathFormatted);
 AuthorSchema
-    .virtual("date_of_death_mm_dd_yyyy")
-    .get(function () {
-        if (this.date_of_death) {
-            return DateTime.fromJSDate(this.date_of_death).toISODate();
-        }
-    });
+    .virtual('date_of_birthRaw')
+    .get(authorVirtual.getDateOfBirth);
 AuthorSchema
-    .virtual("date_of_birth_mm_dd_yyyy")
-    .get(function () {
-        if (this.date_of_birth) {
-            return DateTime.fromJSDate(this.date_of_birth).toISODate();
-        }
-    });
+    .virtual('dateOfDeathRaw')
+    .get(authorVirtual.getDateOfDeath);
 
-//Export model
 module.exports = mongoose.model('Author', AuthorSchema);
-
