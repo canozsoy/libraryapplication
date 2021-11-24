@@ -1,30 +1,28 @@
 {
   "name": "library-application",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "engines": {
-    "node": "14.16.0"
+    "node": "16.13.0"
   },
   "private": true,
   "scripts": {
-    "start": "node ./bin/www",
-    "devstart": "nodemon ./bin/www",
-    "serverstart": "DEBUG=library_application:* npm run devstart"
+    "start": "node app.js",
+    "devstart": "nodemon app.js"
   },
   "dependencies": {
-    "async": "^3.2.0",
     "compression": "^1.7.4",
-    "cookie-parser": "~1.4.4",
-    "debug": "~2.6.9",
-    "express": "~4.16.1",
-    "express-validator": "^6.10.0",
-    "helmet": "^4.4.1",
-    "http-errors": "~1.6.3",
-    "luxon": "^1.26.0",
-    "mongoose": "^5.12.2",
-    "morgan": "~1.9.1",
-    "pug": "2.0.0-beta11"
+    "express": "^4.17.1",
+    "express-validator": "^6.13.0",
+    "helmet": "^4.6.0",
+    "http-errors": "^1.8.1",
+    "luxon": "^2.1.1",
+    "mongoose": "^6.0.13",
+    "pug": "^3.0.2"
   },
   "devDependencies": {
-    "nodemon": "^2.0.7"
+    "eslint": "^8.3.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.25.3",
+    "nodemon": "^2.0.15"
   }
 }
