@@ -1,3 +1,4 @@
 populatedb.js
 node_modules
 .idea
+.env
