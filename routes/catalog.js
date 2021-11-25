@@ -66,7 +66,7 @@ router.get('/genres', genreController.genreList);
 // Book instance routes
 
 router.route('/book-instance/create')
-    .get(bookInstanceController.bookinstanceCreateGet)
+    .get(bookInstanceController.bookInstanceCreateGet)
     .post(bookInstanceController.bookInstanceCreatePost);
 
 router.route('/book-instance/:id/delete')
@@ -77,8 +77,8 @@ router.route('/book-instance/:id/update')
     .get(bookInstanceController.bookInstanceUpdateGet)
     .post(bookInstanceController.bookInstanceUpdatePost);
 
-router.get('/book-instance/:id', bookInstanceController.bookinstanceDetail);
+router.get('/book-instance/:id', bookInstanceController.bookInstanceDetail);
 
-router.get('/book-instances', bookInstanceController.bookinstanceList);
+router.get('/book-instances', bookInstanceController.bookInstanceList);
 
 module.exports = router;

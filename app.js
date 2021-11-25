@@ -4,6 +4,7 @@ const compression = require('compression');
 const helmet = require('helmet');
 const connectDB = require('./models/config');
 const errorHandler = require('./strategies/error_handler');
+require('dotenv').config();
 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
@@ -37,5 +38,7 @@ app.use('*', notFoundRouter);
 // error handler
 
 app.use(errorHandler);
+
+app.listen(process.env.PORT || 3000);
 
 module.exports = app;
