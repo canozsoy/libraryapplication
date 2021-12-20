@@ -1,7 +1,7 @@
 const { validationResult } = require('express-validator');
 const Genre = require('../models/genre');
 const Book = require('../models/book');
-const genreValidations = require('../validations/genre_validations');
+const genreValidations = require('../schemas/genre_schemas');
 
 // Display list of all Genre.
 const genreList = async (req, res, next) => {

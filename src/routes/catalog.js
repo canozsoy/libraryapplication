@@ -5,6 +5,8 @@ const bookController = require('../controllers/book_controller');
 const authorController = require('../controllers/author_controller');
 const genreController = require('../controllers/genre_controller');
 const bookInstanceController = require('../controllers/book_instance_controller');
+const authorSchemas = require('../schemas/author_schemas');
+const authorValidation = require('../middlewares/author_validation');
 
 // Book routes
 
@@ -30,7 +32,11 @@ router.get('/books', bookController.bookList);
 
 router.route('/author/create')
     .get(authorController.authorCreateGet)
-    .post(authorController.authorCreatePost);
+    .post(
+        authorSchemas.createPost,
+        authorValidation.createPost,
+        authorController.authorCreatePost,
+    );
 
 router.route('/author/:id/delete')
     .get(authorController.authorDeleteGet)
@@ -39,7 +45,11 @@ router.route('/author/:id/delete')
 // GET request to update Author.
 router.route('/author/:id/update')
     .get(authorController.authorUpdateGet)
-    .post(authorController.authorUpdatePost);
+    .post(
+        authorSchemas.updatePost,
+        authorValidation.updatePost,
+        authorController.authorUpdatePost,
+    );
 
 router.get('/author/:id', authorController.authorDetail);
 

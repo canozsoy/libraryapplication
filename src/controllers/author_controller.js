@@ -1,14 +1,9 @@
-const { validationResult } = require('express-validator');
-const Author = require('../models/author');
-const Book = require('../models/book');
-const authorValidation = require('../validations/author_validations');
+const authorServices = require('../services/author_services');
 
 const authorList = async (req, res, next) => {
     let authors;
     try {
-        authors = await Author.find()
-            .sort([['family_name', 'ascending']])
-            .exec();
+        authors = await authorServices.findAllAuthors();
     } catch (err) {
         return next(err);
     }
@@ -16,22 +11,16 @@ const authorList = async (req, res, next) => {
 };
 
 const authorDetail = async (req, res, next) => {
+    const { id } = req.params;
+
     let author;
     let authorBooks;
     try {
-        [author, authorBooks] = await Promise.all([
-            Author.findById(req.params.id)
-                .exec(),
-            Book.find({ author: req.params.id }, 'title summary')
-                .exec(),
-        ]);
+        ({ author, authorBooks } = await authorServices.getAuthorDetails(id));
     } catch (err) {
         return next(err);
     }
-    if (!author) {
-        const err = (new Error('Author not found')).status(404);
-        return next(err);
-    }
+
     return res.render('author_detail', {
         title: 'Author Detail',
         author,
@@ -43,46 +32,29 @@ const authorCreateGet = (req, res) => {
     res.render('author_form', { title: 'Create Author' });
 };
 
-const authorCreatePost = [
-    authorValidation.createPostValidations,
-    async (req, res, next) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.render('author_form', {
-                title: 'Create Author',
-                author: req.body,
-                errors: errors.array(),
-            });
-        }
-        const author = new Author(
-            {
-                first_name: req.body.first_name,
-                family_name: req.body.family_name,
-                date_of_birth: req.body.date_of_birth,
-                date_of_death: req.body.date_of_death,
-            },
-        );
-        try {
-            await author.save();
-        } catch (err) {
-            return next(err);
-        }
-        return res.redirect(author.url);
-    },
-];
+const authorCreatePost = async (req, res, next) => {
+    const { body } = req;
 
-const authorDeleteGet = async (req, res, next) => {
     let author;
-    let authorBooks;
+
     try {
-        [author, authorBooks] = await Promise.all([
-            Author.findById(req.params.id).exec(),
-            Book.find({ author: req.params.id }).exec(),
-        ]);
+        author = await authorServices.createAuthor(body);
     } catch (err) {
         return next(err);
     }
-    if (!author) {
+
+    return res.redirect(author.url);
+};
+
+const authorDeleteGet = async (req, res) => {
+    const { id } = req.params;
+
+    let author;
+    let authorBooks;
+    // Unfortunately response is passed here to service
+    try {
+        ({ author, authorBooks } = await authorServices.getAuthorDeletePage(id));
+    } catch (err) {
         return res.redirect('/catalog/authors');
     }
 
@@ -94,28 +66,18 @@ const authorDeleteGet = async (req, res, next) => {
 };
 
 const authorDeletePost = async (req, res, next) => {
-    let author;
-    let authorBooks;
-    try {
-        [author, authorBooks] = await Promise.all([
-            Author.findById(req.body.authorid).exec(),
-            Book.find({ author: req.body.authorid }).exec(),
-        ]);
-    } catch (err) {
-        return next(err);
-    }
-
-    if (authorBooks.length > 0) {
-        return res.render('author_delete', {
-            title: 'Delete Author',
-            author,
-            author_books: authorBooks,
-        });
-    }
+    const { id } = req.params;
 
     try {
-        await Author.findByIdAndRemove(req.body.authorid).exec();
+        await authorServices.deleteAuthor(id);
     } catch (err) {
+        if (err.message === 'EXISTING USER') {
+            return res.render('author_delete', {
+                title: 'Delete Author',
+                author: err.author,
+                author_books: err.authorBooks,
+            });
+        }
         return next(err);
     }
 
@@ -123,9 +85,11 @@ const authorDeletePost = async (req, res, next) => {
 };
 
 const authorUpdateGet = async (req, res, next) => {
+    const { id } = req.params;
+
     let author;
     try {
-        author = await Author.findById(req.params.id).exec();
+        author = await authorServices.getAuthorById(id);
     } catch (err) {
         return next(err);
     }
@@ -136,43 +100,20 @@ const authorUpdateGet = async (req, res, next) => {
     });
 };
 
-const authorUpdatePost = [
-    authorValidation.updatePost,
-    async (req, res, next) => {
-        const errors = validationResult(req);
-        const author = new Author(
-            {
-                first_name: req.body.first_name,
-                family_name: req.body.family_name,
-                date_of_birth: req.body.date_of_birth,
-                date_of_death: req.body.date_of_death,
-                _id: req.params.id,
-            },
-        );
-        if (!errors.isEmpty()) {
-            let oldAuthor;
-            try {
-                oldAuthor = await Author.findById(req.params.id).exec();
-            } catch (err) {
-                return next(err);
-            }
+const authorUpdatePost = async (req, res, next) => {
+    const { id } = req.params;
+    const { body } = req;
 
-            return res.render('author_form', {
-                title: 'Update Author',
-                author: oldAuthor,
-                errors: errors.array(),
-            });
-        }
-        let updatedAuthor;
-        try {
-            updatedAuthor = await Author.findByIdAndUpdate(req.params.id, author, {}).exec();
-        } catch (err) {
-            return next(err);
-        }
+    let updatedAuthor;
 
-        return res.redirect(updatedAuthor.url);
-    },
-];
+    try {
+        updatedAuthor = await authorServices.updateAuthor(id, body);
+    } catch (err) {
+        return next(err);
+    }
+
+    return res.redirect(updatedAuthor.url);
+};
 
 module.exports = {
     authorList,

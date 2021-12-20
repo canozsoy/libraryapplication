@@ -1,6 +1,6 @@
 const { body } = require('express-validator');
 
-const createPostValidations = [
+const createPost = [
     body('first_name').trim()
         .isLength({ min: 1 })
         .escape()
@@ -41,6 +41,6 @@ const updatePost = [
 ];
 
 module.exports = {
-    createPostValidations,
+    createPost,
     updatePost,
 };
