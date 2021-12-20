@@ -5,27 +5,6 @@ const Genre = require('../models/genre');
 const BookInstance = require('../models/bookinstance');
 const bookValidations = require('../schemas/book_schemas');
 
-const index = async (req, res) => {
-    let metaData;
-    let error;
-    try {
-        metaData = await Promise.all([
-            Book.countDocuments({}).exec(),
-            BookInstance.countDocuments({}).exec(),
-            BookInstance.countDocuments({ status: 'Available' }).exec(),
-            Author.countDocuments({}).exec(),
-            Genre.countDocuments({}).exec(),
-        ]);
-    } catch (err) {
-        error = err;
-    }
-    return res.render('index', {
-        title: 'Local Library Home',
-        error,
-        data: metaData,
-    });
-};
-
 // Display list of all books.
 const bookList = async (req, res, next) => {
     let book;
@@ -160,7 +139,7 @@ const bookDeleteGet = async (req, res, next) => {
     }
 
     if (!book) {
-        return res.redirect('/catalog/books');
+        return res.redirect('/catalog/book');
     }
 
     return res.render('book_delete', {
@@ -196,7 +175,7 @@ const bookDeletePost = async (req, res, next) => {
     } catch (err) {
         return next(err);
     }
-    return res.redirect('/catalog/books');
+    return res.redirect('/catalog/book');
 };
 
 // Display book update form on GET.
@@ -313,7 +292,6 @@ const bookUpdatePost = [
 ];
 
 module.exports = {
-    index,
     bookList,
     bookDetail,
     bookCreateGet,

@@ -1,94 +1,22 @@
 const express = require('express');
 
 const router = express.Router();
-const bookController = require('../controllers/book_controller');
-const authorController = require('../controllers/author_controller');
-const genreController = require('../controllers/genre_controller');
-const bookInstanceController = require('../controllers/book_instance_controller');
-const authorSchemas = require('../schemas/author_schemas');
-const authorValidation = require('../middlewares/author_validation');
 
-// Book routes
+const indexRoute = require('./catalog/index');
+const bookRoutes = require('./catalog/book_routes');
+const authorRoutes = require('./catalog/author_routes');
+const genreRoutes = require('./catalog/genre_routes');
+const bookInstanceRoutes = require('./catalog/bookinstance_routes');
 
-router.get('/', bookController.index);
+// Catalog route
+router.use('/', indexRoute);
 
-router.route('/book/create')
-    .get(bookController.bookCreateGet)
-    .post(bookController.bookCreatePost);
+router.use('/author', authorRoutes);
 
-router.route('/book/:id/delete')
-    .get(bookController.bookDeleteGet)
-    .post(bookController.bookDeletePost);
+router.use('/book', bookRoutes);
 
-router.route('/book/:id/update')
-    .get(bookController.bookUpdateGet)
-    .post(bookController.bookUpdatePost);
+router.use('/genre', genreRoutes);
 
-router.get('/book/:id', bookController.bookDetail);
-
-router.get('/books', bookController.bookList);
-
-// Author routes
-
-router.route('/author/create')
-    .get(authorController.authorCreateGet)
-    .post(
-        authorSchemas.createPost,
-        authorValidation.createPost,
-        authorController.authorCreatePost,
-    );
-
-router.route('/author/:id/delete')
-    .get(authorController.authorDeleteGet)
-    .post(authorController.authorDeletePost);
-
-// GET request to update Author.
-router.route('/author/:id/update')
-    .get(authorController.authorUpdateGet)
-    .post(
-        authorSchemas.updatePost,
-        authorValidation.updatePost,
-        authorController.authorUpdatePost,
-    );
-
-router.get('/author/:id', authorController.authorDetail);
-
-router.get('/authors', authorController.authorList);
-
-// Genre routes
-
-router.route('/genre/create')
-    .get(genreController.genreCreateGet)
-    .post(genreController.genreCreatePost);
-
-router.route('/genre/:id/delete')
-    .get(genreController.genreDeleteGet)
-    .post(genreController.genreDeletePost);
-
-router.route('/genre/:id/update')
-    .get(genreController.genreUpdateGet)
-    .post(genreController.genreUpdatePost);
-
-router.get('/genre/:id', genreController.genreDetail);
-
-router.get('/genres', genreController.genreList);
-
-// Book instance routes
-
-router.route('/book-instance/create')
-    .get(bookInstanceController.bookInstanceCreateGet)
-    .post(bookInstanceController.bookInstanceCreatePost);
-
-router.route('/book-instance/:id/delete')
-    .get(bookInstanceController.bookInstanceDeleteGet)
-    .post(bookInstanceController.bookInstanceDeletePost);
-
-router.route('/book-instance/:id/update')
-    .get(bookInstanceController.bookInstanceUpdateGet)
-    .post(bookInstanceController.bookInstanceUpdatePost);
-
-router.get('/book-instance/:id', bookInstanceController.bookInstanceDetail);
-
-router.get('/book-instances', bookInstanceController.bookInstanceList);
+router.use('/book-instance', bookInstanceRoutes);
 
 module.exports = router;

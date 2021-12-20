@@ -55,7 +55,7 @@ const authorDeleteGet = async (req, res) => {
     try {
         ({ author, authorBooks } = await authorServices.getAuthorDeletePage(id));
     } catch (err) {
-        return res.redirect('/catalog/authors');
+        return res.redirect('/catalog/author');
     }
 
     return res.render('author_delete', {
@@ -81,7 +81,7 @@ const authorDeletePost = async (req, res, next) => {
         return next(err);
     }
 
-    return res.redirect('/catalog/authors');
+    return res.redirect('/catalog/author');
 };
 
 const authorUpdateGet = async (req, res, next) => {

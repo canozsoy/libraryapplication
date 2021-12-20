@@ -97,7 +97,7 @@ const genreDeleteGet = async (req, res, next) => {
     }
 
     if (!genre) {
-        return res.redirect('/catalog/genres');
+        return res.redirect('/catalog/genre');
     }
     return res.render('genre_delete', {
         title: 'Delete Genre',
@@ -132,7 +132,7 @@ const genreDeletePost = async (req, res, next) => {
     } catch (err) {
         return next(err);
     }
-    return res.redirect('/catalog/genres');
+    return res.redirect('/catalog/genre');
 };
 
 // Display Genre update form on GET.

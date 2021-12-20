@@ -110,7 +110,7 @@ const bookInstanceDeleteGet = async (req, res, next) => {
         return next(err);
     }
     if (!book) {
-        return res.redirect('/catalog/book-instances');
+        return res.redirect('/catalog/book-instance');
     }
 
     return res.render('bookinstance_delete', {
@@ -136,7 +136,7 @@ const bookInstanceDeletePost = async (req, res, next) => {
     } catch (err) {
         return next(err);
     }
-    return res.redirect('/catalog/book-instances');
+    return res.redirect('/catalog/book-instance');
 };
 
 // Display BookInstance update form on GET.
