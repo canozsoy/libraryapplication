@@ -14,7 +14,7 @@ router.route('/book/create')
     .get(bookController.bookCreateGet)
     .post(bookController.bookCreatePost);
 
-router.route('book/:id/delete')
+router.route('/book/:id/delete')
     .get(bookController.bookDeleteGet)
     .post(bookController.bookDeletePost);
 
@@ -51,7 +51,7 @@ router.route('/genre/create')
     .get(genreController.genreCreateGet)
     .post(genreController.genreCreatePost);
 
-router.route('genre/:id/delete')
+router.route('/genre/:id/delete')
     .get(genreController.genreDeleteGet)
     .post(genreController.genreDeletePost);
 

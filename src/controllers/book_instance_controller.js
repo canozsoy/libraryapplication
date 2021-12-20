@@ -1,7 +1,7 @@
 const { validationResult } = require('express-validator');
 const BookInstance = require('../models/bookinstance');
 const Book = require('../models/book');
-const bookInstanceValidation = require('./validations/book_instance_validations');
+const bookInstanceValidation = require('../validations/book_instance_validations');
 
 // Display list of all BookInstances.
 const bookInstanceList = async (req, res, next) => {

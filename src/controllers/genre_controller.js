@@ -1,7 +1,7 @@
 const { validationResult } = require('express-validator');
 const Genre = require('../models/genre');
 const Book = require('../models/book');
-const genreValidations = require('./validations/genre_validations');
+const genreValidations = require('../validations/genre_validations');
 
 // Display list of all Genre.
 const genreList = async (req, res, next) => {
@@ -154,11 +154,9 @@ const genreUpdateGet = async (req, res, next) => {
 const genreUpdatePost = [
     genreValidations.updatePost,
     async (req, res, next) => {
-        const genre = new Genre(
-            {
-                name: req.body.name,
-            },
-        );
+        const genre = {
+            name: req.body.name,
+        };
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             let errorResult;

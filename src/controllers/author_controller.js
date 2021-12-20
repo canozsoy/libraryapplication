@@ -1,7 +1,7 @@
 const { validationResult } = require('express-validator');
 const Author = require('../models/author');
 const Book = require('../models/book');
-const authorValidation = require('./validations/author_validations');
+const authorValidation = require('../validations/author_validations');
 
 const authorList = async (req, res, next) => {
     let authors;

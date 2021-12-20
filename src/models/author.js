@@ -42,7 +42,7 @@ AuthorSchema
     .virtual('dateOfDeathFormatted')
     .get(authorVirtual.getDateOfDeathFormatted);
 AuthorSchema
-    .virtual('date_of_birthRaw')
+    .virtual('dateOfBirthRaw')
     .get(authorVirtual.getDateOfBirth);
 AuthorSchema
     .virtual('dateOfDeathRaw')

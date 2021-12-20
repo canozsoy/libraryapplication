@@ -3,7 +3,7 @@ const Book = require('../models/book');
 const Author = require('../models/author');
 const Genre = require('../models/genre');
 const BookInstance = require('../models/bookinstance');
-const bookValidations = require('./validations/book_validations');
+const bookValidations = require('../validations/book_validations');
 
 const index = async (req, res) => {
     let metaData;
@@ -216,26 +216,29 @@ const bookUpdateGet = async (req, res, next) => {
         return next(err);
     }
 
-    if (!results.book) { // No results.
-        const err = (new Error('Book not found')).status(404);
+    const [book, author, genres] = results;
+
+    if (!book) { // No results.
+        const err = (new Error('Book not found'));
+        err.status = 404;
         return next(err);
     }
     // Success.
     // Mark our selected genres as checked.
 
-    results.genres.forEach((x, i) => {
-        results.book.genre.forEach((y, j) => {
-            if (results.genres[i].id.toString() === results.book.genre[j].id.toString()) {
-                results.genres[i].checked = 'true';
+    genres.forEach((x, i) => {
+        book.genre.forEach((y, j) => {
+            if (genres[i].id.toString() === book.genre[j].id.toString()) {
+                genres[i].checked = 'true';
             }
         });
     });
 
     return res.render('book_form', {
         title: 'Update Book',
-        authors: results.authors,
-        genres: results.genres,
-        book: results.book,
+        authors: author,
+        genres,
+        book,
     });
 };
 
