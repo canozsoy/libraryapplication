@@ -1,15 +1,11 @@
-const { validationResult } = require('express-validator');
-const Genre = require('../models/genre');
-const Book = require('../models/book');
-const genreValidations = require('../schemas/genre_schemas');
+const genreServices = require('../services/genre_services');
 
 // Display list of all Genre.
 const genreList = async (req, res, next) => {
     let genre;
+
     try {
-        genre = await Genre.find()
-            .sort([['name', 'ascending']])
-            .exec();
+        genre = await genreServices.genreList();
     } catch (err) {
         return next(err);
     }
@@ -22,24 +18,16 @@ const genreList = async (req, res, next) => {
 
 // Display detail page for a specific Genre.
 const genreDetail = async (req, res, next) => {
+    const { id } = req.params;
+
     let genre;
     let genreBooks;
     try {
-        [genre, genreBooks] = await Promise.all([
-            Genre.findById(req.params.id)
-                .exec(),
-            Book.find({ genre: req.params.id })
-                .exec(),
-        ]);
+        ({ genre, genreBooks } = await genreServices.genreDetail(id));
     } catch (err) {
         return next(err);
     }
 
-    if (!genre) {
-        const err = new Error('Genre not found');
-        err.status = 404;
-        return next(err);
-    }
     return res.render('genre_detail', {
         title: 'Genre Detail',
         genre,
@@ -51,54 +39,34 @@ const genreDetail = async (req, res, next) => {
 const genreCreateGet = (req, res) => res.render('genre_form', { title: 'Create Genre' });
 
 // Handle Genre create on POST.
-const genreCreatePost = [
-    genreValidations.createPost,
-    async (req, res, next) => {
-        const errors = validationResult(req);
-        const genre = new Genre(
-            { name: req.body.name },
-        );
-        if (!errors.isEmpty()) {
-            return res.render('genre_form', {
-                title: 'Create Genre',
-                genre,
-                errors: errors.array(),
-            });
-        }
-        let foundGenre;
-        try {
-            foundGenre = await Genre.findOne({ name: req.body.name }).exec();
-        } catch (err) {
-            return next(err);
-        }
-        if (foundGenre) {
-            return res.redirect(foundGenre.url);
-        }
-        try {
-            await genre.save();
-        } catch (err) {
-            return next(err);
-        }
-        return res.redirect(genre.url);
-    },
-];
+const genreCreatePost = async (req, res, next) => {
+    const { body } = req;
+    let newGenre;
 
-// Display Genre delete form on GET.
-const genreDeleteGet = async (req, res, next) => {
-    let genre;
-    let books;
     try {
-        [genre, books] = await Promise.all([
-            Genre.findById(req.params.id).exec(),
-            Book.find({ genre: req.params.id }).exec(),
-        ]);
+        newGenre = await genreServices.genreCreatePost(body);
     } catch (err) {
+        if (err.message === 'GENRE_EXISTS') {
+            return res.redirect(err.foundGenre.url);
+        }
         return next(err);
     }
 
-    if (!genre) {
+    return res.redirect(newGenre.url);
+};
+
+// Display Genre delete form on GET.
+const genreDeleteGet = async (req, res) => {
+    const { id } = req.params;
+
+    let genre;
+    let books;
+    try {
+        ({ genre, books } = await genreServices.genreDeleteGet(id));
+    } catch (err) {
         return res.redirect('/catalog/genre');
     }
+
     return res.render('genre_delete', {
         title: 'Delete Genre',
         genre,
@@ -108,38 +76,31 @@ const genreDeleteGet = async (req, res, next) => {
 
 // Handle Genre delete on POST.
 const genreDeletePost = async (req, res, next) => {
-    let genre;
-    let books;
+    const { id } = req.params;
+
     try {
-        [genre, books] = await Promise.all([
-            Genre.findById(req.params.id).exec(),
-            Book.find({ genre: req.params.id }).exec(),
-        ]);
+        await genreServices.genreDeletePost(id);
     } catch (err) {
+        if (err.message === 'GENRE_BOOKS_EXISTS') {
+            return res.render('genre_delete', {
+                title: 'Delete Genre',
+                genre: err.genre,
+                books: err.genreBooks,
+            });
+        }
         return next(err);
     }
 
-    if (books.length > 0) {
-        return res.render('genre_delete', {
-            title: 'Delete Genre',
-            genre,
-            books,
-        });
-    }
-
-    try {
-        await Genre.findByIdAndRemove(req.params.id);
-    } catch (err) {
-        return next(err);
-    }
     return res.redirect('/catalog/genre');
 };
 
 // Display Genre update form on GET.
 const genreUpdateGet = async (req, res, next) => {
+    const { id } = req.params;
     let genre;
+
     try {
-        genre = await Genre.findById(req.params.id).exec();
+        genre = await genreServices.genreUpdateGet(id);
     } catch (err) {
         return next(err);
     }
@@ -151,37 +112,19 @@ const genreUpdateGet = async (req, res, next) => {
 };
 
 // Handle Genre update on POST.
-const genreUpdatePost = [
-    genreValidations.updatePost,
-    async (req, res, next) => {
-        const genre = {
-            name: req.body.name,
-        };
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            let errorResult;
-            try {
-                errorResult = await Genre.findById(req.params.id);
-            } catch (err) {
-                return next(err);
-            }
+const genreUpdatePost = async (req, res, next) => {
+    const { id } = req.params;
+    const { body } = req;
 
-            return res.render('author_form', {
-                title: 'Update Genre',
-                genre: errorResult,
-                errors: errors.array(),
-            });
-        }
-        let successResult;
-        try {
-            successResult = await Genre.findByIdAndUpdate(req.params.id, genre, {}).exec();
-        } catch (err) {
-            return next(err);
-        }
+    let updatedGenre;
+    try {
+        updatedGenre = await genreServices.genreUpdatePost(id, body);
+    } catch (err) {
+        return next(err);
+    }
 
-        return res.redirect(successResult.url);
-    },
-];
+    return res.redirect(updatedGenre.url);
+};
 
 module.exports = {
     genreList,
