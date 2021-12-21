@@ -62,7 +62,7 @@ const genreDeleteGet = async (req, res) => {
     let genre;
     let books;
     try {
-        ({ genre, books } = await genreServices.genreDeleteGet(id));
+        ({ genre, genreBooks: books } = await genreServices.genreDeleteGet(id));
     } catch (err) {
         return res.redirect('/catalog/genre');
     }

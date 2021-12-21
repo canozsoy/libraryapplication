@@ -1,6 +1,7 @@
 const Genre = require('../models/genre');
 
-const findAllGenres = async () => Genre.find([['name', 'ascending']]).exec();
+const findAllGenres = async () => Genre.find()
+    .sort([['name', 'ascending']]).exec();
 
 const findGenreById = async (id) => Genre.findById(id).exec();
 
