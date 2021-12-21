@@ -1,28 +1,18 @@
-const Book = require('../models/book');
-const authorServices = require('./author_services');
-const genreServices = require('./genre_services');
-const bookInstanceServices = require('./bookinstance_services');
+const bookAccess = require('../db_access/book_access');
+const bookInstanceAccess = require('../db_access/bookinstance_access');
+const authorAccess = require('../db_access/author_access');
+const genreAccess = require('../db_access/genre_access');
 
-const findBookByAuthorId = async (id) => Book.find(
-    { author: id },
-    'title summary',
-).exec();
+const bookList = async () => bookAccess.findAllBooks();
 
-const findAllBooks = async () => Book.find({}, 'title author')
-    .populate('author').exec();
+const getBooks = async () => bookAccess.findBookByQuery({}, 'title');
 
-const findBookById = async (id) => Book.findById(id)
-    .exec();
-
-const findBookByIdPopulateAuthorAndGenre = async (id) => Book.findById(id)
-    .populate('author')
-    .populate('genre')
-    .exec();
+const getBookById = async (id) => bookAccess.findBookById(id);
 
 const getBookDetail = async (id) => {
     const [book, bookInstance] = await Promise.all([
-        findBookByIdPopulateAuthorAndGenre(id),
-        bookInstanceServices.findBookInstanceByBookId(id),
+        bookAccess.findBookByIdPopulateAuthorAndGenre(id),
+        bookInstanceAccess.findBookInstanceByQuery({ book: id }, {}),
     ]);
 
     if (!book) {
@@ -36,24 +26,19 @@ const getBookDetail = async (id) => {
 
 const bookCreateGet = async () => {
     const [authors, genres] = await Promise.all([
-        authorServices.findAllAuthors(),
-        genreServices.findAllGenres(),
+        authorAccess.findAllAuthors(),
+        genreAccess.findAllGenres(),
     ]);
 
     return { authors, genres };
 };
 
-const createBook = async (body) => {
-    const book = new Book(body);
-    await book.save();
-
-    return book;
-};
+const bookCreatePost = async (body) => bookAccess.createBook(body);
 
 const bookDeleteGet = async (id) => {
     const [book, bookInstance] = await Promise.all([
-        findBookById(id),
-        bookInstanceServices.findBookInstanceByBookId(id),
+        bookAccess.findBookById(id),
+        bookInstanceAccess.findBookInstanceByQuery({ book: id }, {}),
     ]);
 
     if (!book) {
@@ -62,8 +47,6 @@ const bookDeleteGet = async (id) => {
 
     return { book, bookInstance };
 };
-
-const deleteBook = async (id) => Book.findByIdAndRemove(id);
 
 const deleteBookPost = async (id) => {
     const { book, bookInstance } = await bookDeleteGet(id);
@@ -75,12 +58,12 @@ const deleteBookPost = async (id) => {
         };
     }
 
-    await deleteBook(id);
+    await bookAccess.deleteBook(id);
 };
 
 const bookUpdateGet = async (id) => {
     const [book, { authors, genres }] = await Promise.all([
-        findBookByIdPopulateAuthorAndGenre(id),
+        bookAccess.findBookByIdPopulateAuthorAndGenre(id),
         bookCreateGet(),
     ]);
 
@@ -102,18 +85,17 @@ const bookUpdateGet = async (id) => {
     return { book, authors, genres };
 };
 
-const updateBook = async (id, body) => Book.findByIdAndUpdate(id, body, {}).exec();
-
-const bookUpdatePost = (id, body) => updateBook(id, body);
+const bookUpdatePost = (id, body) => bookAccess.updateBook(id, body);
 
 module.exports = {
-    findBookByAuthorId,
-    findAllBooks,
+    getBooks,
+    getBookById,
+    bookList,
     getBookDetail,
     bookCreateGet,
-    createBook,
     bookDeleteGet,
     deleteBookPost,
     bookUpdateGet,
     bookUpdatePost,
+    bookCreatePost,
 };

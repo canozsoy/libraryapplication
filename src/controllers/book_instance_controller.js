@@ -1,15 +1,11 @@
-const { validationResult } = require('express-validator');
-const BookInstance = require('../models/bookinstance');
-const Book = require('../models/book');
-const bookInstanceValidation = require('../schemas/book_instance_schemas');
+const bookInstanceServices = require('../services/bookinstance_services');
 
 // Display list of all BookInstances.
 const bookInstanceList = async (req, res, next) => {
     let bookInstances;
+
     try {
-        bookInstances = await BookInstance.find()
-            .populate('book')
-            .exec();
+        bookInstances = await bookInstanceServices.bookInstanceList();
     } catch (err) {
         return next(err);
     }
@@ -22,17 +18,12 @@ const bookInstanceList = async (req, res, next) => {
 
 // Display detail page for a specific BookInstance.
 const bookInstanceDetail = async (req, res, next) => {
+    const { id } = req.params;
+
     let bookInstance;
     try {
-        bookInstance = await BookInstance.findById(req.params.id)
-            .populate('book')
-            .exec();
+        bookInstance = await bookInstanceServices.bookInstanceDetail(id);
     } catch (err) {
-        return next(err);
-    }
-
-    if (!bookInstance) {
-        const err = (new Error('Book copy not found')).status(404);
         return next(err);
     }
 
@@ -46,7 +37,7 @@ const bookInstanceDetail = async (req, res, next) => {
 const bookInstanceCreateGet = async (req, res, next) => {
     let book;
     try {
-        book = await Book.find({}, 'title').exec();
+        book = await bookInstanceServices.bookInstanceCreateGet();
     } catch (err) {
         return next(err);
     }
@@ -58,58 +49,28 @@ const bookInstanceCreateGet = async (req, res, next) => {
 };
 
 // Handle BookInstance create on POST.
-const bookInstanceCreatePost = [
-    bookInstanceValidation.createPost,
-    async (req, res, next) => {
-        const errors = validationResult(req);
-        const bookInstance = new BookInstance(
-            {
-                book: req.body.book,
-                imprint: req.body.imprint,
-                status: req.body.status,
-                due_back: req.body.due_back,
-            },
-        );
-        if (!errors.isEmpty()) {
-            let book;
-            try {
-                book = await Book.find({}, 'title').exec();
-            } catch (err) {
-                return next(err);
-            }
-            return res.render('bookinstance_form', {
-                title: 'Create BookInstance',
-                book_list: book,
-                selected_book: bookInstance.id,
-                errors: errors.array(),
-                bookInstance,
-            });
-        }
-        try {
-            await bookInstance.save();
-        } catch (err) {
-            return next(err);
-        }
+const bookInstanceCreatePost = async (req, res, next) => {
+    const { body } = req;
 
-        return res.redirect(bookInstance.url);
-    },
-];
-
-// Display BookInstance delete form on GET.
-const bookInstanceDeleteGet = async (req, res, next) => {
-    let book;
-    let imprint;
+    let newBookInstance;
     try {
-        [book, imprint] = await Promise.all([
-            BookInstance.findById(req.params.id)
-                .populate('book').exec(),
-            BookInstance.find({ book: req.params.id }, 'imprint')
-                .exec(),
-        ]);
+        newBookInstance = await bookInstanceServices.bookInstanceCreatePost(body);
     } catch (err) {
         return next(err);
     }
-    if (!book) {
+
+    return res.redirect(newBookInstance.url);
+};
+
+// Display BookInstance delete form on GET.
+const bookInstanceDeleteGet = async (req, res) => {
+    const { id } = req.params;
+
+    let book;
+    let imprint;
+    try {
+        ({ book, imprint } = await bookInstanceServices.bookInstanceDeleteGet(id));
+    } catch (err) {
         return res.redirect('/catalog/book-instance');
     }
 
@@ -122,39 +83,29 @@ const bookInstanceDeleteGet = async (req, res, next) => {
 
 // Handle BookInstance delete on POST.
 const bookInstanceDeletePost = async (req, res, next) => {
+    const { id } = req.params;
+
     try {
-        await Promise.all([
-            BookInstance.findById(req.params.id).populate('book').exec(),
-            BookInstance.find({ book: req.params.id }, 'imprint').exec(),
-        ]);
+        await bookInstanceServices.bookInstanceDeletePost(id);
     } catch (err) {
         return next(err);
     }
 
-    try {
-        await BookInstance.findByIdAndRemove(req.body.bookinstanceid).exec();
-    } catch (err) {
-        return next(err);
-    }
     return res.redirect('/catalog/book-instance');
 };
 
 // Display BookInstance update form on GET.
 const bookInstanceUpdateGet = async (req, res, next) => {
+    const { id } = req.params;
+
     let bookInstance;
     let book;
     try {
-        [bookInstance, book] = await Promise.all([
-            BookInstance.findById(req.params.id).populate('book').exec(),
-            Book.find().exec(),
-        ]);
+        ({ bookInstance, book } = await bookInstanceServices.bookInstanceUpdateGet(id));
     } catch (err) {
         return next(err);
     }
-    if (!bookInstance) {
-        const err = (new Error('Book copy not found')).status(404);
-        return next(err);
-    }
+
     return res.render('bookinstance_form', {
         title: 'Update Book Instance',
         book_list: book,
@@ -163,41 +114,20 @@ const bookInstanceUpdateGet = async (req, res, next) => {
 };
 
 // Handle bookinstance update on POST.
-const bookInstanceUpdatePost = [
-    bookInstanceValidation.updatePost,
-    async (req, res, next) => {
-        const errors = validationResult(req);
-        const bookInstance = new BookInstance({
-            book: req.body.book,
-            imprint: req.body.imprint,
-            due_back: req.body.due_back,
-            status: req.body.status,
-            _id: req.params.id,
-        });
-        if (!errors.isEmpty()) {
-            let book;
-            try {
-                book = await Book.findById(req.params.id).exec();
-            } catch (err) {
-                return next(err);
-            }
-            return res.render('bookinstance_form', {
-                title: 'Update Book Instance',
-                book_list: book,
-                bookInstance,
-            });
-        }
-        let updatedBookInstance;
-        try {
-            updatedBookInstance = await BookInstance
-                .findByIdAndUpdate(req.params.id, bookInstance, {})
-                .exec();
-        } catch (err) {
-            return next(err);
-        }
-        return res.redirect(updatedBookInstance.url);
-    },
-];
+const bookInstanceUpdatePost = async (req, res, next) => {
+    const { id } = req.params;
+    const { body } = req;
+
+    let updatedBookInstance;
+
+    try {
+        updatedBookInstance = await bookInstanceServices.bookInstanceUpdatePost(id, body);
+    } catch (err) {
+        return next(err);
+    }
+
+    return res.redirect(updatedBookInstance.url);
+};
 
 module.exports = {
     bookInstanceList,

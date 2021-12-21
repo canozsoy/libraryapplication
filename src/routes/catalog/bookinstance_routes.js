@@ -1,11 +1,17 @@
 const express = require('express');
+const bookInstanceSchemas = require('../../schemas/book_instance_schemas');
+const bookInstanceValidations = require('../../middlewares/bookinstance_validation');
 const bookInstanceController = require('../../controllers/book_instance_controller');
 
 const router = express.Router();
 
 router.route('/create')
     .get(bookInstanceController.bookInstanceCreateGet)
-    .post(bookInstanceController.bookInstanceCreatePost);
+    .post(
+        bookInstanceSchemas.createPost,
+        bookInstanceValidations.createPost,
+        bookInstanceController.bookInstanceCreatePost,
+    );
 
 router.route('/:id/delete')
     .get(bookInstanceController.bookInstanceDeleteGet)
@@ -13,7 +19,11 @@ router.route('/:id/delete')
 
 router.route('/:id/update')
     .get(bookInstanceController.bookInstanceUpdateGet)
-    .post(bookInstanceController.bookInstanceUpdatePost);
+    .post(
+        bookInstanceSchemas.updatePost,
+        bookInstanceValidations.updatePost,
+        bookInstanceController.bookInstanceUpdatePost,
+    );
 
 router.get('/:id', bookInstanceController.bookInstanceDetail);
 

@@ -21,7 +21,7 @@ const updatePost = async (req, res, next) => {
     if (!errors.isEmpty()) {
         let oldAuthor;
         try {
-            oldAuthor = await authorServices.getAuthorById(id);
+            oldAuthor = await authorServices.authorUpdateGet(id);
         } catch (err) {
             return next(err);
         }

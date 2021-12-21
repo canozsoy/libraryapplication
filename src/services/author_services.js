@@ -1,16 +1,12 @@
-const Author = require('../models/author');
-const bookServices = require('./book_services');
+const authorAccess = require('../db_access/author_access');
+const bookAccess = require('../db_access/book_access');
 
-const findAllAuthors = async () => Author.find()
-    .sort([['family_name', 'ascending']])
-    .exec();
-
-const getAuthorById = async (id) => Author.findById(id).exec();
+const authorList = async () => authorAccess.findAllAuthors();
 
 const getAuthorDetails = async (id) => {
     const [author, authorBooks] = await Promise.all([
-        getAuthorById(id),
-        bookServices.findBookByAuthorId(id),
+        authorAccess.getAuthorById(id),
+        bookAccess.findBookByQuery({ author: id }, 'title summary'),
     ]);
 
     if (!author) {
@@ -22,18 +18,9 @@ const getAuthorDetails = async (id) => {
     return { author, authorBooks };
 };
 
-const createAuthor = async (body) => {
-    const author = new Author(body);
-    await author.save();
-    return author;
-};
+const authorCreatePost = async (body) => authorAccess.createAuthor(body);
 
 const getAuthorDeletePage = async (id) => getAuthorDetails(id);
-
-const findAndDeleteAuthorById = (id) => Author.findByIdAndRemove(id).exec();
-
-const updateAuthor = async (id, body) => Author.findByIdAndUpdate(id, body, {})
-    .exec();
 
 const deleteAuthor = async (id) => {
     const { author, authorBooks } = await getAuthorDetails(id);
@@ -46,15 +33,19 @@ const deleteAuthor = async (id) => {
         };
     }
 
-    await findAndDeleteAuthorById(id);
+    await authorAccess.findAndDeleteAuthorById(id);
 };
 
+const authorUpdateGet = async (id) => authorAccess.getAuthorById(id);
+
+const authorUpdatePost = async (id, body) => authorAccess.updateAuthor(id, body);
+
 module.exports = {
-    findAllAuthors,
+    authorList,
     getAuthorDetails,
-    createAuthor,
+    authorCreatePost,
     getAuthorDeletePage,
+    authorUpdateGet,
     deleteAuthor,
-    getAuthorById,
-    updateAuthor,
+    authorUpdatePost,
 };

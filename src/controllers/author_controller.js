@@ -3,7 +3,7 @@ const authorServices = require('../services/author_services');
 const authorList = async (req, res, next) => {
     let authors;
     try {
-        authors = await authorServices.findAllAuthors();
+        authors = await authorServices.authorList();
     } catch (err) {
         return next(err);
     }
@@ -38,7 +38,7 @@ const authorCreatePost = async (req, res, next) => {
     let author;
 
     try {
-        author = await authorServices.createAuthor(body);
+        author = await authorServices.authorCreatePost(body);
     } catch (err) {
         return next(err);
     }
@@ -89,7 +89,7 @@ const authorUpdateGet = async (req, res, next) => {
 
     let author;
     try {
-        author = await authorServices.getAuthorById(id);
+        author = await authorServices.authorUpdateGet(id);
     } catch (err) {
         return next(err);
     }
@@ -107,7 +107,7 @@ const authorUpdatePost = async (req, res, next) => {
     let updatedAuthor;
 
     try {
-        updatedAuthor = await authorServices.updateAuthor(id, body);
+        updatedAuthor = await authorServices.authorUpdatePost(id, body);
     } catch (err) {
         return next(err);
     }

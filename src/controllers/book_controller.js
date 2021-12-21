@@ -5,7 +5,7 @@ const bookList = async (req, res, next) => {
     let book;
 
     try {
-        book = await bookServices.findAllBooks();
+        book = await bookServices.bookList();
     } catch (err) {
         return next(err);
     }
@@ -56,7 +56,7 @@ const bookCreatePost = async (req, res, next) => {
 
     let newBook;
     try {
-        newBook = await bookServices.createBook(body);
+        newBook = await bookServices.bookCreatePost(body);
     } catch (err) {
         return next(err);
     }
